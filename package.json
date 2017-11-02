@@ -4,7 +4,7 @@
   "description": "FlappyBird, the game.",
   "main": "index.js",
   "scripts": {
-    "start": "./lib/bs/bytecode/index.byte",
+    "start": "./lib/bs/bytecode/indexhot.byte",
     "build": "bsb -make-world",
     "build:web": "bsb -make-world -backend js",
     "clean": "bsb -clean-world"
