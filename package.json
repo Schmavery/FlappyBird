@@ -1,0 +1,25 @@
+{
+  "name": "test",
+  "version": "0.0.0",
+  "description": "Used to test reprocessing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "bsb -w",
+    "clean": "bsb -clean-world",
+    "pack-for-non-safari": "rollup --input ./lib/es6_global/src/main.js --format iife --output docs/all.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chenglou/Mareo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "reprocessing": "github:Schmavery/reprocessing"
+  },
+  "devDependencies": {
+    "bs-platform": "bsansouci/bsb-native#teset"
+  }
+}

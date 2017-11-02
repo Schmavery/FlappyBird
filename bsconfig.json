@@ -1,0 +1,11 @@
+{
+  "name": "FlappyDemo",
+  "sources": "src",
+  "bs-dependencies": ["Reprocessing"],
+  "bs-super-errors": true,
+  "entries": [
+    {"kind": "native", "main": "Index"},
+    {"kind": "bytecode", "main": "IndexHot"},
+    {"kind": "js", "main": "Index"}
+  ]
+}
