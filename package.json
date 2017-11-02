@@ -1,17 +1,17 @@
 {
-  "name": "test",
+  "name": "FlappyBird",
   "version": "0.0.0",
-  "description": "Used to test reprocessing",
+  "description": "FlappyBird, the game.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "bsb -w",
-    "clean": "bsb -clean-world",
-    "pack-for-non-safari": "rollup --input ./lib/es6_global/src/main.js --format iife --output docs/all.js"
+    "start": "./lib/bs/bytecode/index.byte",
+    "build": "bsb -make-world",
+    "build:web": "bsb -make-world -backend js",
+    "clean": "bsb -clean-world"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chenglou/Mareo.git"
+    "url": "git+https://github.com/schmavery/FlappyBird.git"
   },
   "keywords": [],
   "author": "",
