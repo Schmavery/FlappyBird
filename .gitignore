@@ -1,3 +1,6 @@
 lib
 .merlin
 node_modules
+*.cmo
+*.cmx
+*.o
