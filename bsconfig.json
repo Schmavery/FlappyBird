@@ -4,8 +4,8 @@
   "bs-dependencies": ["Reprocessing"],
   "bs-super-errors": true,
   "entries": [
-    {"kind": "native", "main": "Index"},
     {"kind": "bytecode", "main": "IndexHot"},
+    {"kind": "native", "main": "Index"},
     {"kind": "js", "main": "Index"}
   ]
 }
