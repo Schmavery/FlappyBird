@@ -21,6 +21,7 @@ type stateT = {
   pipes: list(pipeT),
   score: int,
   angle: float,
+  worldPos: float,
   font: Reprocessing.fontT,
   img: Reprocessing.imageT
 };
@@ -28,6 +29,10 @@ type stateT = {
 let gapRadius = 60.;
 
 let pipeWidth = 75.;
+
+let floorHeight = 100;
+
+let floorHeightf = float_of_int(floorHeight);
 
 let birdX = 150.;
 
@@ -55,51 +60,118 @@ let intersectPipe = (birdPos, (centerX, gapCenterY), env) : bool => {
   tophit || bottomhit
 };
 
-let drawPipe = ((centerX, gapCenterY), env) => {
-  let pipeRad = pipeWidth /. 2.;
-  let height = float_of_int(Env.height(env));
-  Draw.fill(pipeColor, env);
-  Draw.rectf(
-    ~pos=(centerX -. pipeRad, 0.),
+let findNewPipePos = (pipes, screenHeight) => {
+  let maxPipeX = List.fold_left((acc, (x, _y)) => max(acc, x), 0., pipes);
+  (
+    maxPipeX +. Utils.randomf(~min=minInterPipeGap, ~max=1.5 *. minInterPipeGap),
+    Utils.randomf(~min=gapRadius *. 2., ~max=screenHeight -. floorHeightf -. gapRadius *. 2.)
+  )
+};
+
+let rec generateSomePipes = (num, screenHeight) =>
+  switch num {
+  | 0 => []
+  | 1 => [(500., 200.)]
+  | n =>
+    let pipes = generateSomePipes(n - 1, screenHeight);
+    [findNewPipePos(pipes, screenHeight), ...pipes]
+  };
+
+let drawPipe = ((centerX, gapCenterY): pipeT, img, env) => {
+  let pipeX = int_of_float(centerX -. pipeWidth /. 2.);
+  let pipeWidth = int_of_float(pipeWidth);
+  let pipeHeight = 400;
+  Draw.subImage(
+    img,
+    ~pos=(pipeX, int_of_float(gapCenterY -. gapRadius -. float_of_int(pipeHeight))),
     ~width=pipeWidth,
-    ~height=gapCenterY -. gapRadius,
+    ~height=pipeHeight,
+    ~texPos=(56, 323),
+    ~texWidth=26,
+    ~texHeight=160,
     env
   );
-  Draw.rectf(
-    ~pos=(centerX -. pipeRad, gapCenterY +. gapRadius),
+  Draw.subImage(
+    img,
+    ~pos=(pipeX, int_of_float(gapCenterY +. gapRadius)),
     ~width=pipeWidth,
-    ~height=height -. gapCenterY -. gapRadius,
+    ~height=pipeHeight,
+    ~texPos=(84, 323),
+    ~texWidth=26,
+    ~texHeight=160,
     env
   )
 };
 
+let resetState = (state, env) => {
+  ...state,
+  pos: (birdX, 40.),
+  vy: 0.,
+  running: true,
+  pipes: generateSomePipes(5, float_of_int(Env.height(env))),
+  angle: 0.,
+  worldPos: 0.,
+  score: 0
+};
+
 let setup = (env) : stateT => {
+  Env.resizeable(false, env);
   Env.size(~width=400, ~height=640, env);
   Draw.noStroke(env);
-  {
-    pos: (birdX, 40.),
-    vy: 0.,
-    running: true,
-    pipes: [(300., 100.), (500., 100.), (700., 150.), (900., 230.)],
-    score: 0,
-    angle: 0.,
-    font: Draw.loadFont(~filename="./assets/flappy.fnt", ~isPixel=true, env),
-    img: Draw.loadImage(~filename="./assets/flappy.png", ~isPixel=true, env)
-  }
+  resetState(
+    {
+      pos: (birdX, 40.),
+      vy: 0.,
+      running: true,
+      pipes: [],
+      score: 0,
+      angle: 0.,
+      worldPos: 0.,
+      font: Draw.loadFont(~filename="./assets/flappy.fnt", ~isPixel=true, env),
+      img: Draw.loadImage(~filename="./assets/flappy.png", ~isPixel=true, env)
+    },
+    env
+  )
 };
 
 let show_state = ({pos: (x, y)}: stateT) : string => Printf.sprintf("{x: %f, y: %f}", x, y);
 
 let crashed = ({running, pos: (_, y)}, env) =>
-  ! running && float_of_int(Env.height(env)) -. birdRad -. y < 1.;
+  ! running && float_of_int(Env.height(env)) -. birdRad -. floorHeightf -. y < 1.;
+
+let drawTiled = (screenY, screenHeight, x, y, w, h, img, worldPosf, env) => {
+  let sw = Env.width(env);
+  let worldPos = int_of_float(worldPosf);
+  Draw.subImage(
+    img,
+    ~pos=(- (worldPos mod sw), screenY),
+    ~width=sw,
+    ~height=screenHeight,
+    ~texPos=(x, y),
+    ~texWidth=w,
+    ~texHeight=h,
+    env
+  );
+  Draw.subImage(
+    img,
+    ~pos=(- (worldPos mod sw) + sw - 3, screenY),
+    ~width=sw,
+    ~height=screenHeight,
+    ~texPos=(x, y),
+    ~texWidth=w,
+    ~texHeight=h,
+    env
+  )
+};
 
 let draw = ({pos: (x, y) as pos, vy, running, pipes, font, img} as state, env) => {
   let timeStep = Env.deltaTime(env);
-  Draw.background(Utils.color(~r=230, ~g=230, ~b=250, ~a=255), env);
+  let screenHeight = Env.height(env);
   Draw.clear(env);
-  List.iter((pipe: pipeT) => drawPipe(pipe, env), pipes);
+  drawTiled(0, screenHeight, 0, 0, 144, 256, img, state.worldPos /. 2., env);
+  List.iter((pipe: pipeT) => drawPipe(pipe, img, env), pipes);
+  drawTiled(screenHeight - floorHeight, floorHeight, 292, 0, 169, 56, img, state.worldPos, env);
   Draw.fill(Constants.red, env);
-  /* Draw.ellipsef center::state.pos radx::birdRad rady::birdRad env; */
   Draw.pushMatrix(env);
   let drawBirdRad = birdRad +. 5.;
   Draw.translate(~x, ~y, env);
@@ -136,33 +208,30 @@ let draw = ({pos: (x, y) as pos, vy, running, pipes, font, img} as state, env) =
       env
     )
   };
-  let hit = List.exists((pipe) => intersectPipe(pos, pipe, env), pipes);
-  let maxPipeX = List.fold_left((acc, (x, _y)) => max(acc, x), 0., pipes);
+  let floorLocation = screenHeight -. birdRad -. floorHeightf;
+  let newY = Utils.constrain(~amt=y +. vy *. g *. timeStep, ~low=birdRad, ~high=floorLocation);
+  let hit = List.exists((pipe) => intersectPipe(pos, pipe, env), pipes) || newY >= floorLocation;
+  let scrollAmount = scrollRate *. timeStep;
+  let isCrashed = crashed(state, env);
   let (newPipes, newScore) =
-    crashed(state, env) ?
+    isCrashed ?
       (pipes, state.score) :
       List.fold_left(
-        ((pipes, score), (x, y)) => {
+        ((newPipes, score), (x, y)) => {
           let (newX, _) as newPos =
             if (x < -. halfPipeWidth) {
-              (
-                maxPipeX +. Utils.randomf(~min=minInterPipeGap, ~max=2. *. minInterPipeGap),
-                Utils.randomf(~min=gapRadius, ~max=screenHeight -. gapRadius)
-              )
+              findNewPipePos(pipes, screenHeight)
             } else {
-              (x -. scrollRate *. timeStep, y)
+              (x -. scrollAmount, y)
             };
-          ([newPos, ...pipes], score + (running && newX < birdX && x >= birdX ? 1 : 0))
+          ([newPos, ...newPipes], score + (running && newX < birdX && x >= birdX ? 1 : 0))
         },
         ([], state.score),
         pipes
       );
   {
     ...state,
-    pos: (
-      x,
-      Utils.constrain(~amt=y +. vy *. g *. timeStep, ~low=birdRad, ~high=screenHeight -. birdRad)
-    ),
+    pos: (x, newY),
     vy: vy +. g *. timeStep,
     running: state.running && ! hit,
     angle: {
@@ -172,6 +241,7 @@ let draw = ({pos: (x, y) as pos, vy, running, pipes, font, img} as state, env) =
       let newVal = Utils.lerpf(~value=vy > 0. ? 0.1 : 0.7, ~low=state.angle, ~high=targetAngle);
       Utils.constrain(~amt=newVal, ~low=highAngle, ~high=0.7)
     },
+    worldPos: isCrashed ? state.worldPos : state.worldPos +. scrollAmount,
     pipes: newPipes,
     score: newScore
   }
@@ -181,7 +251,7 @@ let keyPressed = (state, env) =>
   Events.(
     switch (state.running, crashed(state, env), Env.keyCode(env)) {
     | (true, false, Space) => {...state, vy: jumpSpeed}
-    | (false, true, Space) => setup(env)
+    | (false, true, Space) => resetState(state, env)
     | _ => state
     }
   );
