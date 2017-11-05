@@ -3,10 +3,10 @@
   "sources": "src",
   "bs-dependencies": ["Reprocessing"],
   "bs-super-errors": true,
-  "refmt": 3,
   "entries": [
-    {"kind": "bytecode", "main": "IndexHot"},
-    {"kind": "native", "main": "Index"},
-    {"kind": "js", "main": "Index"}
-  ]
+    {"backend": "bytecode", "main-module": "IndexHot"},
+    {"backend": "native", "main-module": "Index"},
+    {"backend": "js", "main-module": "Index"}
+  ],
+  "refmt": 3,
 }
