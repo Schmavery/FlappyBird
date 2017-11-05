@@ -20,6 +20,6 @@
     "reprocessing": "github:Schmavery/reprocessing"
   },
   "devDependencies": {
-    "bs-platform": "bsansouci/bsb-native#teset"
+    "bs-platform": "bsansouci/bsb-native"
   }
 }
