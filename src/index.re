@@ -1,12 +1,10 @@
 open Reprocessing;
 
-let g = 25.;
-
-let hSpeed = 4.;
+let g = 40.;
 
 let birdRad = 15.;
 
-let scrollRate = 100.;
+let scrollRate = 175.;
 
 let jumpSpeed = (-12.);
 
@@ -47,7 +45,7 @@ let intersectPipe = (birdPos, (centerX, gapCenterY), env) : bool => {
       ~rectW=pipeWidth,
       ~rectH=gapCenterY -. gapRadius,
       ~circlePos=birdPos,
-      ~circleRad=birdRad
+      ~circleRad=birdRad -. 2.
     );
   let bottomhit =
     Utils.intersectRectCircle(
@@ -55,7 +53,7 @@ let intersectPipe = (birdPos, (centerX, gapCenterY), env) : bool => {
       ~rectW=pipeWidth,
       ~rectH=height -. gapCenterY -. gapRadius,
       ~circlePos=birdPos,
-      ~circleRad=birdRad
+      ~circleRad=birdRad -. 2.
     );
   tophit || bottomhit
 };
@@ -139,6 +137,52 @@ let show_state = ({pos: (x, y)}: stateT) : string => Printf.sprintf("{x: %f, y: 
 let crashed = ({running, pos: (_, y)}, env) =>
   ! running && float_of_int(Env.height(env)) -. birdRad -. floorHeightf -. y < 1.;
 
+let drawBird = ({pos: (x, y), img} as state, env) => {
+  Draw.pushMatrix(env);
+  let drawBirdRad = birdRad +. 5.;
+  Draw.translate(~x, ~y, env);
+  Draw.rotate(state.angle, env);
+  let negBirdRad = -. drawBirdRad;
+  Draw.translate(~x=negBirdRad, ~y=negBirdRad, env);
+  switch (int_of_float(state.worldPos) / 20 mod 3) {
+  | 0 =>
+    Draw.subImage(
+      img,
+      ~pos=(0, 0),
+      ~width=int_of_float(drawBirdRad) * 2,
+      ~height=int_of_float(drawBirdRad) * 2,
+      ~texPos=(3, 488),
+      ~texWidth=17,
+      ~texHeight=17,
+      env
+    )
+  | 1 =>
+    Draw.subImage(
+      img,
+      ~pos=(0, 0),
+      ~width=int_of_float(drawBirdRad) * 2,
+      ~height=int_of_float(drawBirdRad) * 2,
+      ~texPos=(31, 488),
+      ~texWidth=17,
+      ~texHeight=17,
+      env
+    )
+  | 2 =>
+    Draw.subImage(
+      img,
+      ~pos=(0, 0),
+      ~width=int_of_float(drawBirdRad) * 2,
+      ~height=int_of_float(drawBirdRad) * 2,
+      ~texPos=(59, 488),
+      ~texWidth=17,
+      ~texHeight=17,
+      env
+    )
+  | _ => assert false
+  };
+  Draw.popMatrix(env)
+};
+
 let drawTiled = (screenY, screenHeight, x, y, w, h, img, worldPosf, env) => {
   let sw = Env.width(env);
   let worldPos = int_of_float(worldPosf);
@@ -171,24 +215,7 @@ let draw = ({pos: (x, y) as pos, vy, running, pipes, font, img} as state, env) =
   drawTiled(0, screenHeight, 0, 0, 144, 256, img, state.worldPos /. 2., env);
   List.iter((pipe: pipeT) => drawPipe(pipe, img, env), pipes);
   drawTiled(screenHeight - floorHeight, floorHeight, 292, 0, 169, 56, img, state.worldPos, env);
-  Draw.fill(Constants.red, env);
-  Draw.pushMatrix(env);
-  let drawBirdRad = birdRad +. 5.;
-  Draw.translate(~x, ~y, env);
-  Draw.rotate(state.angle, env);
-  let negBirdRad = -. drawBirdRad;
-  Draw.translate(~x=negBirdRad, ~y=negBirdRad, env);
-  Draw.subImage(
-    img,
-    ~pos=(0, 0),
-    ~width=int_of_float(drawBirdRad) * 2,
-    ~height=int_of_float(drawBirdRad) * 2,
-    ~texPos=(3, 488),
-    ~texWidth=17,
-    ~texHeight=17,
-    env
-  );
-  Draw.popMatrix(env);
+  drawBird(state, env);
   let halfPipeWidth = pipeWidth /. 2.;
   let screenHeight = float_of_int(Env.height(env));
   Draw.pushMatrix(env);
@@ -239,7 +266,7 @@ let draw = ({pos: (x, y) as pos, vy, running, pipes, font, img} as state, env) =
       let targetAngle =
         Utils.remapf(~value=vy, ~low1=jumpSpeed, ~high1=10., ~low2=highAngle, ~high2=0.7);
       let newVal = Utils.lerpf(~value=vy > 0. ? 0.1 : 0.7, ~low=state.angle, ~high=targetAngle);
-      Utils.constrain(~amt=newVal, ~low=highAngle, ~high=0.7)
+      Utils.constrain(~amt=newVal, ~low=highAngle, ~high=1.0)
     },
     worldPos: isCrashed ? state.worldPos : state.worldPos +. scrollAmount,
     pipes: newPipes,
