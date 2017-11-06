@@ -6,7 +6,7 @@ let birdRad = 15.;
 
 let scrollRate = 175.;
 
-let jumpSpeed = (-12.);
+let jumpSpeed = (-11.);
 
 let pipeColor = Utils.color(~r=80, ~g=185, ~b=0, ~a=255);
 
