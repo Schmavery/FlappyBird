@@ -32,6 +32,8 @@ npm start
 ```
 
 ## Details
+We made a [livestream](https://youtu.be/5aD3aPvNpyQ?t=6m47s) of us making this.
+
 Those commands build and run the bytecode version. 
 
 To play with the JS version you can simply do `npm run build:web` and start a static server (like using python: `python -m SimpleHTTPServer`). On safari you can also simply tick `Disable Cross-Origin Restrictions` from the `Develop` menu and then open the `index.html` directly.
