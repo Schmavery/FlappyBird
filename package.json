@@ -19,9 +19,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "reprocessing": "github:Schmavery/reprocessing"
+    "reprocessing": "0.2.0"
   },
   "devDependencies": {
-    "bs-platform": "bsansouci/bsb-native#2.1.1"
+    "bsb-native": "4.0.6"
   }
 }

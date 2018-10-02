@@ -1,7 +1,7 @@
 {
   "name": "FlappyDemo",
   "sources": "src",
-  "bs-dependencies": ["Reprocessing"],
+  "bs-dependencies": ["reprocessing"],
   "bs-super-errors": true,
   "entries": [
     {"backend": "bytecode", "main-module": "IndexHot"},
